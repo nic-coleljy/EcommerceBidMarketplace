@@ -37,8 +37,8 @@ kubectl delete secret gitlab-registry-access
 
 kubectl create secret docker-registry gitlab-registry-access \
 --docker-server=registry.gitlab.com \
---docker-username=gitlab+deploy-token-1480703 \
---docker-password=K9NQsaB3na4QEb98zH-a
+--docker-username=
+--docker-password=
 
 kubectl apply -f k8s/secrets.yaml
 kubectl apply -f k8s/
