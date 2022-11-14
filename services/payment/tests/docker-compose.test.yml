@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  ##################################
+  # Payment Service
+  ##################################
+  payment:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    environment:
+      REDIRECT_URL: "http://localhost:3030"
+  ##################################
+  # Chai Test on Payment Service
+  ##################################
+  payment-test:
+    build:
+      context: ../
+      dockerfile: tests/Dockerfile.test

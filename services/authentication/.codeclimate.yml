@@ -1,0 +1,32 @@
+plugins:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - javascript
+  eslint:
+    enabled: true
+    channel: "eslint-6"
+    config:
+      extensions:
+      - .es6
+      - .js
+      - .jsx  
+exclude_patterns:
+- config/
+- db/
+- dist/
+- features/
+- "**/node_modules/"
+- script/
+- "**/spec/"
+- "**/test/"
+- "**/tests/"
+- Tests/
+- "**/vendor/"
+- "**/*_test.go"
+- "**/*.d.ts"
+- "**/*.min.js"
+- "**/*.min.css"
+- "**/__tests__/"
+- "**/__mocks__/"

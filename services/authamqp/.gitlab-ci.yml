@@ -1,0 +1,84 @@
+stages:
+  - Static Analysis
+  - Test
+  - Release
+
+flake8:
+  stage: Static Analysis
+  image: python:3.10-slim
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never                                  # Do not run this job when a tag is created manually
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run this job when commits are pushed or merged to the default branch
+  before_script:
+    - python -V
+    - python -m pip install flake8
+  script:
+    - flake8 src | tee flake8_report.txt
+  artifacts:
+    when: on_failure
+    paths:
+      - flake8_report.txt
+
+pylint:
+  stage: Static Analysis
+  image: python:3.10-slim
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never                                  # Do not run this job when a tag is created manually
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run this job when commits are pushed or merged to the default branch
+  before_script:
+    - python -V
+    - python -m pip install -r requirements.txt
+    - python -m pip install pylint
+  script:
+    - pylint -d C0103,E1101 --fail-under=7 src | tee pylint_report.txt
+  artifacts:
+    when: always
+    paths:
+      - pylint_report.txt
+
+integration-tests:
+  stage: Test
+  image: docker/compose:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never                                  # Do not run this job when a tag is created manually
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run this job when commits are pushed or merged to the default branch
+  services:
+    - docker:dind
+  before_script:
+    - docker info
+    - docker-compose --version
+  script:
+    - docker-compose -f ci/docker-compose.test.yml up --exit-code-from auth-pytest
+
+# based on: https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Docker.gitlab-ci.yml
+release-image:
+  stage: Release
+  image: docker:20.10.11
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never                                  # Do not run this job when a tag is created manually
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run this job when commits are pushed or merged to the default branch
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH:latest" -t "$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH:$CI_COMMIT_SHA" .
+    - docker push "$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH" --all-tags
+
+release_job:
+  stage: Release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never                                  # Do not run this job when a tag is created manually
+    - if: $CI_COMMIT_MESSAGE =~ /release/ && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run this job when commits are pushed or merged to the default branch
+  script:
+    - echo "running release_job for $TAG"
+  release:                                         # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
+    tag_name: 'v0.$CI_PIPELINE_IID'                # The version is incremented per pipeline.
+    description: 'v0.$CI_PIPELINE_IID'
+    ref: '$CI_COMMIT_SHA'                          # The tag is created from the pipeline SHA.

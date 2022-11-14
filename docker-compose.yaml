@@ -1,0 +1,191 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+
+services:
+  ####################################
+  # nginx: API Gateway
+  ####################################
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - payment-service
+      - auth-service
+      - bidding-service
+      - product-service
+    env_file:
+      - 'dev.env'
+    ports:
+      - "8080:80"
+  ####################################
+  # RabbitMQ: The messaging broker   
+  ####################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes: 
+      - rabbitmq_data:/var/lib/rabbitmq
+  ####################################
+  # MongoDB database
+  ####################################
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 
+      MONGO_INITDB_ROOT_PASSWORD: 
+  ####################################
+  # Atomic Microservice: Authentication
+  ####################################
+  auth-service:
+    build:
+      context: ./services/authentication
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+      PORT: 5100
+  ####################################
+  # Atomic Microservice: Authentication
+  ####################################
+  amqp-auth-service:
+    build:
+      context: ./services/authamqp
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+      - rabbitmq
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+  ####################################
+  # Atomic Microservice: Bidding
+  ####################################
+  bidding-service:
+    build:
+      context: ./services/bidding
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+      - rabbitmq
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+  ####################################
+  # Atomic Microservice: Communication
+  ####################################
+  communication-service:
+    build:
+      context: ./services/communication
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - rabbitmq
+      - mongo
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+  ####################################
+  # Atomic Microservice: Payment
+  ####################################
+  payment-service:
+    build:
+      context: ./services/payment
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+      PORT: 5200
+  ####################################
+  # Atomic Microservice: Payment (AMQP sidecar)
+  ####################################
+  amqp-payment-service:
+    build:
+      context: ./services/paymentamqp
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+      - mongo
+    restart: always
+    env_file: 
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+  ####################################
+  # Atomic Microservice: Product
+  ####################################
+  product-service:
+    build:
+      context: ./services/product
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+      PORT: 5001
+  ####################################
+  # Atomic Microservice: Product (AMQP sidecar)
+  ####################################
+  amqp-product-service:
+    build:
+      context: ./services/productamqp
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+      - rabbitmq
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+  ####################################
+  # Atomic Microservice: Process Engine
+  ####################################
+  process-engine:
+    build:
+      context: ./services/process-engine
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mongo
+      - rabbitmq
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+  ####################################
+  # User Interface: Frontend
+  ####################################
+  frontend:
+    build:
+      context: ./user-interfaces/frontend
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - 'dev.env'
+    ports:
+      - "3030:3030"

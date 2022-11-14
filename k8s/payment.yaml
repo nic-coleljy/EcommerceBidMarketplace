@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  labels:
+    app: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+      - name: payment-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/payment/main:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5200
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+        env:
+        - name: PORT
+          value: "5200"
+        livenessProbe:
+          httpGet:
+            path: /payment/health
+            port: 5200
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /payment/health
+            port: 5200
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      - name: amqp-payment-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/paymentgroup/paymentamqp/main:latest
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+      imagePullSecrets:
+      - name: gitlab-registry-access
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+spec:
+  type: ClusterIP
+  selector:
+    app: payment-service
+  ports:
+    - protocol: TCP
+      port: 32000
+      targetPort: 5200

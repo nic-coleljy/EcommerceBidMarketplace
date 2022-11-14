@@ -1,0 +1,49 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+
+services:
+  # Local MongoDB for testing
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  # Local rabbitMQ testing container
+  rabbitmq:
+    image: rabbitmq:3.11.2-alpine
+    hostname: rabbitmq-test
+    volumes: 
+      - rabbitmq_data:/var/lib/rabbitmq
+  
+  # The testing docker container to interact with the main communication container
+  product-pytest:
+    build:
+      context: ../
+      dockerfile: ci/Dockerfile.test
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      PYTHONUNBUFFERED: 1
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
+      MONGODB_URL: mongodb://root:example@mongo:27017/
+
+  # The main container that runs the product logic
+  product:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+      - mongo
+    restart: always
+    environment:
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
+      MONGODB_URL: mongodb://root:example@mongo:27017/
+      PYTHONUNBUFFERED: 1

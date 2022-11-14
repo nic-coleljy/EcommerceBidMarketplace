@@ -1,0 +1,38 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+
+services:
+  # Local rabbitMQ testing container
+  rabbitmq:
+    image: rabbitmq:3.11.2-alpine
+    hostname: rabbitmq-test
+    volumes: 
+      - rabbitmq_data:/var/lib/rabbitmq
+  
+  # The testing docker container to interact with the main communication container
+  communications-pytest:
+    build:
+      context: ../
+      dockerfile: ci/Dockerfile.test
+    depends_on:
+      - rabbitmq
+    environment:
+      PYTHONUNBUFFERED: 1
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
+
+  # The main container that runs the communication (email) logic
+  communications:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    restart: always
+    env_file: ../.env
+    environment:
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
+      PYTHONUNBUFFERED: 1

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication-service
+  labels:
+    app: authentication-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentication-service
+  template:
+    metadata:
+      labels:
+        app: authentication-service
+    spec:
+      containers:
+      - name: authentication-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/authentication/main:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5100
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+        env:
+        - name: PORT
+          value: "5100"
+        livenessProbe:
+          httpGet:
+            path: /user/health
+            port: 5100
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /user/health
+            port: 5100
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      - name: amqp-authentication-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/auth/authamqp/main:latest
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+      imagePullSecrets:
+      - name: gitlab-registry-access
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentication-service
+spec:
+  type: ClusterIP
+  selector:
+    app: authentication-service
+  ports:
+    - protocol: TCP
+      port: 31000
+      targetPort: 5100

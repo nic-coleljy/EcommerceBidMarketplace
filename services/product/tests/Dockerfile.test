@@ -1,0 +1,11 @@
+FROM node:14-buster
+WORKDIR /usr/src/app
+
+COPY tests/wait-for-it.sh ./
+COPY tests/*.js ./tests/
+COPY package.json ./
+
+RUN chmod +x wait-for-it.sh
+RUN npm install chai-http chai mocha
+
+CMD ./wait-for-it.sh mongo:27017 -- sleep 10 && npm test

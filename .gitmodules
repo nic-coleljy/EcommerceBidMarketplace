@@ -1,0 +1,33 @@
+[submodule "user-interfaces/frontend"]
+	path = user-interfaces/frontend
+	url = git@gitlab.com:cs302-2022/g1-team1/frontend.git
+[submodule "services/authentication"]
+	path = services/authentication
+	url = git@gitlab.com:cs302-2022/g1-team1/authentication.git
+[submodule "services/process-engine"]
+	path = services/process-engine
+	url = git@gitlab.com:cs302-2022/g1-team1/process-engine.git
+[submodule "services/product"]
+	path = services/product
+	url = git@gitlab.com:cs302-2022/g1-team1/product/product.git
+[submodule "services/communication"]
+	path = services/communication
+	url = git@gitlab.com:cs302-2022/g1-team1/communication.git
+[submodule "api-gateway"]
+	path = api-gateway
+	url = git@gitlab.com:cs302-2022/g1-team1/api-gateway.git
+[submodule "services/payment"]
+	path = services/payment
+	url = git@gitlab.com:cs302-2022/g1-team1/payment.git
+[submodule "services/bidding"]
+	path = services/bidding
+	url = git@gitlab.com:cs302-2022/g1-team1/bidding.git
+[submodule "services/paymentamqp"]
+	path = services/paymentamqp
+	url = git@gitlab.com:cs302-2022/g1-team1/paymentgroup/paymentamqp.git
+[submodule "services/authamqp"]
+	path = services/authamqp
+	url = git@gitlab.com:cs302-2022/g1-team1/auth/authamqp.git
+[submodule "services/productamqp"]
+	path = services/productamqp
+	url = git@gitlab.com:cs302-2022/g1-team1/product/productamqp.git

@@ -1,0 +1,54 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+
+services:
+  ####################################
+  # RabbitMQ broker for testing  
+  ####################################
+  rabbitmq:
+    image: rabbitmq:3.11.2-alpine
+    hostname: rabbitmq-test
+    volumes: 
+      - rabbitmq_data:/var/lib/rabbitmq
+  ####################################
+  # MongoDB database for testing
+  ####################################
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  ####################################
+  # Process Engine service for testing
+  ####################################
+  process-engine:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - mongo
+      - rabbitmq
+    restart: always
+    environment:
+      MONGODB_URL: mongodb://root:example@mongo:27017/
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
+      PYTHONUNBUFFERED: 1
+  ##################################
+  # Service for running pytest
+  ##################################
+  process-engine-pytest:
+    build:
+      context: ../
+      dockerfile: ci/Dockerfile.test
+    depends_on:
+      - mongo
+      - rabbitmq
+    environment:
+      MONGODB_URL: mongodb://root:example@mongo:27017/
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
+      PYTHONUNBUFFERED: 1

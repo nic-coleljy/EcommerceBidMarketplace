@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: communication-service
+  labels:
+    app: communication-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: communication-service
+  template:
+    metadata:
+      labels:
+        app: communication-service
+    spec:
+      containers:
+      - name: communication-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/communication/main:latest
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+      imagePullSecrets:
+      - name: gitlab-registry-access

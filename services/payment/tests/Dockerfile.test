@@ -1,0 +1,10 @@
+FROM node:14-buster
+
+WORKDIR /usr/src/app
+
+COPY tests/*.js ./tests/
+COPY package.json ./
+
+RUN npm install chai-http chai mocha
+
+CMD sleep 10 && npm run test

@@ -1,0 +1,17 @@
+FROM node:14-buster
+
+# RUN apk update && apk add bash && apk add build-base
+RUN apt-get update && \
+    apt-get install dos2unix
+
+COPY tests/*.js ./tests/
+COPY package.json ./
+COPY tests/wait-for-it.sh ./
+
+RUN dos2unix /wait-for-it.sh
+
+RUN chmod +x wait-for-it.sh
+RUN npm install chai-http chai mocha mongoose
+
+CMD ./wait-for-it.sh mongo:27017 -t 50 -- sleep 10 && npm run test
+# CMD  -- sleep 30 && npm run test

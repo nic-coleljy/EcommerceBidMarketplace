@@ -1,0 +1,13 @@
+FROM python:3.10-slim
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+COPY ci/requirements.test.txt ./
+COPY ci/wait-for-it.sh ./
+COPY tests/*.py ./tests/
+
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.test.txt
+RUN chmod +x ./wait-for-it.sh
+
+CMD ./wait-for-it.sh rabbitmq:5672 -t 30 -- ./wait-for-it.sh mongo:27017 -t 30 -- python3 -m pytest

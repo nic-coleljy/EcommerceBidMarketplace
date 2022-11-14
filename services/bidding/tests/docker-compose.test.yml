@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  ####################################
+  # nosql database
+  ####################################
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 
+      MONGO_INITDB_ROOT_PASSWORD: 
+
+  ####################################
+  # amqp message queue
+  ####################################
+  rabbitmq3:
+    hostname: "rabbitmq"
+    image: rabbitmq:3.10-management-alpine
+    environment:
+        RABBITMQ_DEFAULT_USER: 
+        RABBITMQ_DEFAULT_PASS: 
+    ports:
+      # AMQP protocol port
+      - '5672:5672'
+      # HTTP management UI
+      - '15672:15672'
+
+  ##################################
+  # Bidding Service
+  ##################################
+  bidding:
+    hostname: bidding
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - mongo
+      - rabbitmq3
+    environment:
+      - MONGO_URI=
+      - AMQP_URI=
+
+  ##################################
+  # Test on Bidding Service
+  ##################################
+  bidding-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - mongo
+      - rabbitmq3
+      - bidding

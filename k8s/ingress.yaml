@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cs302-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api/v1/(user(/.*)?)
+            pathType: Prefix
+            backend:
+              service:
+                name: authentication-service
+                port:
+                  number: 31000
+          - path: /api/v1/(bid(/.*)?|close-bid)
+            pathType: Prefix
+            backend:
+              service:
+                name: bidding-service
+                port:
+                  number: 35000
+          - path: /api/v1/(payment(/.*)?)
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service
+                port:
+                  number: 32000
+          - path: /api/v1/(products(/.*)?)
+            pathType: Prefix
+            backend:
+              service:
+                name: product-service
+                port:
+                  number: 33000
+          - path: /((.*)?)
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3030

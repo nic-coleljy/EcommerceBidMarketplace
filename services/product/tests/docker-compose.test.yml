@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  ####################################
+  # mysql database  
+  ####################################
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  ##################################
+  # Product Service
+  ##################################
+  product:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - mongo
+    environment:
+      MONGODB_URL: mongodb://root:example@mongo:27017/
+  ##################################
+  # Chai Test on Product Service
+  ##################################
+  product-test:
+    build:
+      context: ../
+      dockerfile: tests/Dockerfile.test
+    depends_on:
+      - mongo

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bidding-service
+  labels:
+    app: bidding-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bidding-service
+  template:
+    metadata:
+      labels:
+        app: bidding-service
+    spec:
+      containers:
+      - name: bidding-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/bidding/main:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+        livenessProbe:
+          httpGet:
+            path: /bid/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /bid/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      imagePullSecrets:
+      - name: gitlab-registry-access
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bidding-service
+spec:
+  type: ClusterIP
+  selector:
+    app: bidding-service
+  ports:
+    - protocol: TCP
+      port: 35000
+      targetPort: 8080

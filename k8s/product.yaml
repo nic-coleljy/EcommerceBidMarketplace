@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  labels:
+    app: product-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+      - name: product-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/product/product/main:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5300
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+        env:
+        - name: PORT
+          value: "5300"
+        livenessProbe:
+          httpGet:
+            path: /products/health
+            port: 5300
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /products/health
+            port: 5300
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      - name: amqp-product-service
+        image: registry.gitlab.com/cs302-2022/g1-team1/product/productamqp/master:latest
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+      imagePullSecrets:
+      - name: gitlab-registry-access
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+spec:
+  type: ClusterIP
+  selector:
+    app: product-service
+  ports:
+    - protocol: TCP
+      port: 33000
+      targetPort: 5300

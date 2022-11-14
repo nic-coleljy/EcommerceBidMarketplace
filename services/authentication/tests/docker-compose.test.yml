@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  ####################################
+  # Mongo database  
+  ####################################
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 
+      MONGO_INITDB_ROOT_PASSWORD: 
+  ##################################
+  # Authentication Service
+  ##################################
+  authentication:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - mongo
+    environment:
+      MONGODB_URL: 
+  ##################################
+  # Chai Test on Authentication Service
+  ##################################
+  authentication-test:
+    build:
+      context: ../
+      dockerfile: tests/Dockerfile.test
+    depends_on:
+      - mongo
+    environment:
+      MONGODB_URL: 

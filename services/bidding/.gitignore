@@ -1,0 +1,4 @@
+.cert/*
+bin/*
+*.exe
+config/*

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: process-engine
+  labels:
+    app: process-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: process-engine
+  template:
+    metadata:
+      labels:
+        app: process-engine
+    spec:
+      containers:
+      - name: process-engine
+        image: registry.gitlab.com/cs302-2022/g1-team1/process-engine/main:latest
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: env-vars-production
+      imagePullSecrets:
+      - name: gitlab-registry-access
