@@ -5,7 +5,7 @@ A single deployment repo which contains all the services.
 ## Getting started
 
 ```bash
-git clone --recursive https://gitlab.com/cs302-2022/g1-team1/deployment.git
+git clone --recursive https://github.com/nic-coleljy/EcommerceBidMarketplace.git
 
 # Deploy using the various scripts
 docker compose up -d --build
