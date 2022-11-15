@@ -43,3 +43,12 @@ kubectl create secret docker-registry gitlab-registry-access \
 kubectl apply -f k8s/secrets.yaml
 kubectl apply -f k8s/
 ```
+
+<br>
+<b> Credits: </b><br>
+1. Chong Zhan Han <br>
+2. Yuen Kah May <br>
+3. Nicole Lim Jia Yi<br>
+4. Teo Keng Swee <br>
+5. Won Ying Keat <br>
+6. Cheah King Yeh <br>
